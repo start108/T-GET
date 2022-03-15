@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="TransactionMapper">
+ 	
+ 	
+	<resultMap id="tranSelectMap" type="transaction">
+		<result property="tranNo" 				column="tran_no" 				jdbcType="NUMERIC"/>
+		<result property="orderAmount"			column="order_amount" 			jdbcType="NUMERIC" />
+		<result property="totalPrice" 			column="total_price" 			jdbcType="NUMERIC" />
+		<result property="orderDate" 			column="order_date" 			jdbcType="DATE" />
+		<result property="paymentOption" 		column="payment_option" 		jdbcType="CHAR" />
+		<result property="paymentNo" 			column="payment_no" 			jdbcType="VARCHAR" />
+		<result property="tranCode" 			column="tran_code" 				jdbcType="CHAR" />
+		<result property="deliveryAddr" 		column="delivery_add" 			jdbcType="VARCHAR"  />
+		<result property="deliveryCompany" 		column="delivery_company" 		jdbcType="VARCHAR" />
+		<result property="deliveryNo" 			column="delivery_no" 			jdbcType="NUMERIC"/>
+		<result property="deliveryStartDate" 	column="delivery_start_date" 	jdbcType="DATE"/>
+		<result property="reviewScore" 			column="review_score" 			jdbcType="NUMERIC"/>
+		<result property="reviewBody" 			column="review_body" 			jdbcType="VARCHAR"/>
+		<result property="reviewRegDate" 		column="review_reg_date" 		jdbcType="DATE"/>
+		<result property="refundAccountNo" 		column="refund_account_no" 		jdbcType="VARCHAR"/>
+		<result property="refundAccountBank" 	column="refund_account_bank" 	jdbcType="VARCHAR"/>
+		<association property="ticket" column="ticket_no" javaType="ticket" select="TicketMapper.selectTicket"/> 
+ 		<association property="event" column="event_id" javaType="event" select="EventMapper.selectEventById"/>
+ 		<association property="seller" column="seller_id" javaType="user" select="UserMapper.selectUser"/> 
+ 		<association property="buyer" column="buyer_id" javaType="user" select="UserMapper.selectUser"/>
+	</resultMap>
+	
+	<!-- SQL : INSERT -->
+	<insert 	id="insertTran"		parameterType="transaction" >
+	 	<selectKey keyProperty="tranNo" resultType="integer" order="BEFORE">
+	 		SELECT NVL(MAX(tran_no), 0) + 1 FROM transaction
+	 	</selectKey>
+	 	insert 
+	 	into 
+	 	transaction(tran_no, ticket_no, event_id,seller_id,buyer_id,
+	 				 order_amount, total_price, payment_option, payment_no , tran_code, delivery_add ) 
+        
+        values( seq_transaction_tran_no.nextval , #{ticket.ticketNo} , #{event.eventId} , 
+                #{seller.userId}, #{buyer.userId} ,
+                 #{orderAmount} , #{totalPrice} , #{paymentOption} , #{paymentNo:VARCHAR} , #{tranCode} , #{deliveryAddr})
+	 </insert>
+	 
+	 <update	id="updateDeliveryInfo"	parameterType="transaction" >
+	 	UPDATE transaction
+	 	<set>
+	 		tran_code = '2' ,
+	 		delivery_company = #{deliveryCompany} , 
+	 		delivery_no = #{deliveryNo} , 
+	 		delivery_start_date = SYSDATE 
+		</set>
+		WHERE tran_no = #{tranNo}
+	 </update>
+	 
+	 <update	id="updateDeliveryAddr"	parameterType="transaction" >
+	 	UPDATE transaction
+	 	<set>
+	 		delivery_add = #{deliveryAddr}
+		</set>
+		WHERE tran_no = #{tranNo}
+	 </update>
+	 
+	 <update	id="updateTranCode"	parameterType="transaction" >
+	 	UPDATE transaction
+	 	<set>
+	 		tran_code = #{tranCode}
+		</set>
+		WHERE tran_no = #{tranNo}
+	 </update>
+	 
+	 <select  id="selectTran"  parameterType="int"	resultMap="tranSelectMap">
+	 	SELECT 
+	 	TRAN_NO , TICKET_NO , EVENT_ID , SELLER_ID , BUYER_ID , order_amount , 
+	 	total_price , order_date , payment_option , payment_no , tran_code , delivery_add , 
+	 	delivery_company , delivery_no , delivery_start_date , review_score , review_body , 
+	 	review_reg_date , refund_account_bank , refund_account_no
+	 	FROM transaction
+	 	WHERE tran_no = #{value}	
+	 </select>
+	 
+	 <select  id="selectListTran"  parameterType="search"	resultMap="tranSelectMap">
+	 	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM(	
+	  							SELECT 
+								TRAN_NO , TICKET_NO , EVENT_ID , SELLER_ID , BUYER_ID , order_amount , 
+								total_price , order_date , payment_option , payment_no , tran_code , delivery_add , 
+								delivery_company , delivery_no , delivery_start_date , review_score , review_body , 
+								review_reg_date , refund_account_bank , refund_account_no
+								FROM transaction
+								<where>										
+									<if test="searchCondition != null">												
+									<choose>	
+									<when test="searchCondition == 0 and searchKeyword !='' ">
+										tran_code = #{searchKeyword}
+									</when>
+									<when test="searchCondition == 1 and searchKeyword !='' ">
+										tran_code in('0','1','2','3')
+										and #{searchKeyword} in (seller_id,buyer_id)
+									</when>
+									<when test="searchCondition == 2 and searchKeyword !='' ">
+										tran_code in('2','3')
+										and #{searchKeyword} = buyer_id
+									</when>									
+									</choose>
+									</if>												
+								</where>
+								order by order_date desc
+								) inner_table
+			)	
+	 </select>
+	 
+	  <select  id="selectTotalCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM(	
+				SELECT 
+				TRAN_NO
+				FROM transaction
+				<where>										
+					<if test="searchCondition != null">												
+					<choose>	
+						<when test="searchCondition == 0 and searchKeyword !='' ">
+							tran_code = #{searchKeyword}
+						</when>
+						<when test="searchCondition == 1 and searchKeyword !='' ">
+							tran_code in('0','1','2','3')
+							and #{searchKeyword} in (seller_id,buyer_id)
+						</when>
+						<when test="searchCondition == 2 and searchKeyword !='' ">
+							tran_code in('2','3')
+							and #{searchKeyword} = buyer_id
+						</when>	
+					</choose>
+					</if>												
+				</where>
+	  	) countTable						
+	 </select>
+	 
+	 <delete id="deleteTran" parameterType="int">
+	  	DELETE 
+	  	FROM transaction
+	  	WHERE tran_no = #{value}
+  	</delete>
+	 
+	 <!-- 
+	 WHERE ROWNUM &lt;= #{endRowNum} )
+	 WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum} 
+	  -->
+	 
+</mapper>

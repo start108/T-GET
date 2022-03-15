@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CouponMapper">
+ 	
+ 	
+	<resultMap id="couponSelectMap" type="coupon">
+		<result property="couponNo" 			column="coupon_no" 			jdbcType="NUMERIC"/>
+		<result property="couponCode"	column="coupon_code" 		jdbcType="CHAR" />
+		<result property="userId" 	column="user_id" 		jdbcType="VARCHAR" />
+		<result property="couponUseDate" 				column="coupon_use_date" 					jdbcType="DATE" />
+		<result property="couponRegDate" 				column="coupon_reg_date" 					jdbcType="DATE" />
+		<result property="couponStatement" 			column="coupon_statement" 		jdbcType="CHAR" />
+
+	</resultMap>
+	
+	<!-- SQL : INSERT -->
+	<insert 	id="insertCoupon"		parameterType="coupon" >
+	 	INSERT
+		INTO coupon( coupon_no , coupon_code , user_id , coupon_reg_date, coupon_statement) 
+		VALUES	 (	seq_coupon_coupon_no.nextval,  #{couponCode} , #{userId} , SYSDATE, '0' )
+	 </insert>
+	 
+	 <select  id="selectCoupon"  parameterType="int"	resultMap="couponSelectMap">
+	 	SELECT
+		coupon_no , coupon_code , user_id , coupon_use_date , coupon_reg_date, coupon_statement	 		
+		FROM coupon
+	 	WHERE coupon_NO = #{value}	
+	 </select>
+	 
+	 <select 	id="selectListCoupon"	parameterType="coupon"	resultMap="couponSelectMap">
+		SELECT
+		coupon_no , coupon_code , user_id , coupon_use_date , coupon_reg_date, coupon_statement
+	 		
+		FROM coupon 
+		WHERE user_id = #{userId} AND coupon_statement = '0'
+		
+	 </select>
+	 
+	 <update	id="updateCoupon"	parameterType="coupon" >
+	   	UPDATE coupon
+	   	<set>
+	   		coupon_use_date = SYSDATE ,
+	   		coupon_statement = '1'
+	   		
+	   	</set>
+	   	WHERE coupon_no = #{couponNo}
+	 </update>
+	 
+</mapper>

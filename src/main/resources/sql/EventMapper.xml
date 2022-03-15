@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EventMapper">
+ 	
+ 	
+	<resultMap id="eventSelectMap" type="event">
+		<result property="eventId" 			column="event_id" 			jdbcType="VARCHAR"/>
+		<result property="viewCount"	column="view_count" 		jdbcType="NUMERIC" />
+		<result property="categoryTwoEng" 	column="category_two_eng" 		jdbcType="VARCHAR" />
+		<result property="eventImage" 				column="event_image" 					jdbcType="VARCHAR" />
+		<result property="eventName" 				column="event_name" 					jdbcType="VARCHAR" />
+		<result property="eventLocation" 			column="event_location" 		jdbcType="VARCHAR" />
+		<result property="eventDate" 				column="event_date" 					jdbcType="DATE" />
+		<result property="eventTime" 			column="event_time" 				jdbcType="VARCHAR"  />
+		<result property="interestedCategoryNo" 			column="interested_category_no" 				jdbcType="NUMERIC"  />
+		<result property="userId" 			column="user_id" 				jdbcType="VARCHAR"  />
+		<result property="koName" 			column="ko_name" 			jdbcType="VARCHAR"/>
+		<result property="koLocation" 			column="ko_location" 			jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<resultMap id="recommEventSelectMap" type="recommEvent">
+		<result property="recommEventNo"	column="recomm_event_no" 		jdbcType="NUMERIC" />
+		<result property="eventName" 	column="event_name" 		jdbcType="VARCHAR" />
+		<result property="videoName" 				column="video_name" 					jdbcType="VARCHAR" />
+		<result property="recommEventName" 				column="recomm_event_name" 					jdbcType="VARCHAR" />
+		<result property="recommEventDetail" 			column="recomm_event_detail" 		jdbcType="VARCHAR" />
+		<result property="koName"  column="ko_name"  jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<resultMap id="categorySelectMap" type="category">
+		<result property="categoryTwoNo"	column="category_two_no" 		jdbcType="NUMERIC" />
+		<result property="categoryOneCode" 	column="category_one_code" 		jdbcType="CHAR" />
+		<result property="categoryTwoName" 				column="category_two_name" 					jdbcType="VARCHAR" />
+		<result property="categoryTwoEng" 				column="category_two_eng" 					jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<insert 	id="insertEvent"		parameterType="stubhubEvent" >
+	 	INSERT
+		INTO event( event_id, view_count, category_two_eng, event_image, event_name, event_location, event_date, event_time,ko_name,ko_location) 
+		VALUES	 (	#{id} , 0 , #{categoryTwoEng} , 'logo.png' , 
+							#{name} , #{venueName:VARCHAR} , #{eventDate} ,
+							#{eventTime}, #{koName:VARCHAR} , #{koLocation:VARCHAR} )
+	 </insert>
+	 
+	  <select 	id="selectEventByName"	 parameterType="string" 	resultMap="eventSelectMap">
+		 SELECT event_id, view_count, category_two_eng, event_image, event_name, event_location, event_date, event_time,ko_name,ko_location
+		 FROM event
+		 WHERE event_name = #{eventName} AND event_date >= SYSDATE
+		 ORDER BY event_date
+	 </select>
+	 
+	 <select 	id="selectEventById"	 parameterType="string" 	resultMap="eventSelectMap">
+		 SELECT event_id, view_count, category_two_eng, event_image, event_name, event_location, event_date, event_time,ko_name,ko_location
+		 FROM event
+		 WHERE event_id = #{eventId}	
+	 </select>
+	 
+	 <select 	id="selectEventCount"	parameterType="map"	 resultType="int">
+		SELECT COUNT(*)
+	  	FROM( SELECT event_id, view_count, category_two_eng, event_image, event_name, event_location, event_date, event_time,ko_name,ko_location
+		 				FROM event
+						<if test="searchKeyword == 'eventId'">WHERE event_id = #{eventId}</if>
+		 				<if test="searchKeyword == 'eventName'">WHERE event_name = #{eventName} AND event_date >= SYSDATE</if>)  countTable	
+	 </select>
+	 
+	 <update	id="updateEvent"	parameterType="map" >
+	 	UPDATE event 
+	 	<set>
+	 		<if test="search.searchCondition == 0" >view_count = #{search.searchKeyno:NUMERIC}</if>
+			<if test="search.searchCondition == 1" >event_image = #{search.searchKeyword:VARCHAR}</if>
+		</set>
+		WHERE event_name = #{eventName}
+	 </update>
+	 
+	 <select 	id="selectListInterestedEvent"	parameterType="string"	resultMap="eventSelectMap">
+		 SELECT u.interested_category_no, u.user_id, u.category_two_eng, u.event_id, e.event_name, e.event_image, e.event_location, e.event_date, e.event_time,e.ko_name,e.ko_location
+		 FROM user_interested u, event e
+		 WHERE u.event_id = e.event_id
+		 AND user_id = #{userId}  AND event_date >= SYSDATE
+		 ORDER BY e.event_date
+	 </select>
+	 
+	 <select 	id="selectListInterestedEventCount"	parameterType="string"	resultType="int">
+		SELECT COUNT(*)
+	  	FROM( SELECT u.interested_category_no, u.user_id, u.category_two_eng, u.event_id, e.event_name, e.event_location, e.event_image, e.event_date, e.event_time,e.ko_name,e.ko_location
+		 				FROM user_interested u, event e
+		 				WHERE u.event_id = e.event_id  
+						AND user_id = #{userId} AND event_date >= SYSDATE
+						ORDER BY e.event_date )  countTable	
+	 </select>
+	 
+	 <insert 	id="insertInterestedEvent"		parameterType="event" >
+	 	INSERT
+		INTO user_interested(interested_category_no, user_id, category_two_eng, event_id) 
+		VALUES	 (	seq_user_Interested_no.nextval , #{userId} , #{categoryTwoEng:VARCHAR} , #{eventId:VARCHAR}  )
+	 </insert>
+	 
+	 <delete id="deleteInterestedEvent" parameterType="event">
+	  	DELETE 
+	  	FROM user_interested 
+	  	WHERE event_id = #{eventId} AND user_id = #{userId}
+  	</delete>
+  	
+  	<delete id="deleteInterestedEventAll" parameterType="string">
+	  	DELETE 
+	  	FROM user_interested 
+	  	WHERE user_id = #{userId}
+  	</delete>
+
+	 <insert 	id="insertYoutubeVideo"		parameterType="map" >
+	 	INSERT
+		INTO youtube( youtube_no , youtube_id , event_name) 
+		VALUES	 (seq_youtube_youtube_no.nextval , #{youtubeId} , #{eventName})
+	 </insert>	 
+	 
+	 <delete id="deleteYoutubeVideo" parameterType="map">
+	  	DELETE 
+	  	FROM youtube 
+	  	WHERE youtube_id = #{youtubeId} AND event_name = #{eventName}   
+  	</delete>
+	 
+	 <select 	id="selectListYoutubeId"	parameterType="string"	resultType="string">
+		 SELECT youtube_id 
+		 FROM youtube
+		 WHERE event_name = #{eventName} 
+		 ORDER BY youtube_no DESC
+	 </select>
+	 
+	 <select 	id="selectListYoutubeIdCount"	parameterType="string"	resultType="int">
+		 SELECT COUNT(*)
+	  	FROM( SELECT youtube_id 
+		 				FROM youtube
+		 				WHERE event_name = #{eventName} )  countTable	
+	 </select>
+	 
+	 <select 	id="selectListPopularEvent"	resultMap="eventSelectMap">
+	 	 SELECT vt.*, ROWNUM
+	 	 FROM		(SELECT event_id, event_name, view_count, ko_name, ko_location,event_image
+		 					FROM event
+		 					ORDER BY view_count DESC) vt
+		 WHERE ROWNUM &lt;= 30 
+	 </select>
+	 
+	 <select 	id="selectRecommendedEvent"	parameterType="search"	 resultMap="recommEventSelectMap">
+<!-- 		 SELECT recomm_event_no, event_name, video_name, recomm_event_name, recomm_event_detail -->
+<!-- 		 FROM recommended_event -->
+<!-- 		 <if test="searchCondition == 1" >WHERE recomm_event_no = #{searchKeyno}</if> -->
+<!-- 		 ORDER BY recomm_event_no -->
+		 
+		 SELECT r.recomm_event_no, r.event_name, r.video_name, r.recomm_event_name, r.recomm_event_detail, e.ko_name
+		 FROM recommended_event r, event e
+<!-- 		 WHERE r.event_name = e.event_name -->
+		WHERE
+		 	r.event_name = e.event_name
+		 	<if test="searchCondition == 1" >AND recomm_event_no = #{searchKeyno}</if>
+
+		 ORDER BY recomm_event_no
+	 </select>
+	 
+	 <insert 	id="insertRecommendedEvent"	parameterType="recommEvent" >
+	 	<selectKey keyProperty="recommEventNo" resultType="int">
+	       SELECT 	seq_recomm_event_no.currval  FROM DUAL
+	   </selectKey>
+	 	INSERT
+		INTO recommended_event( recomm_event_no, event_name, video_name, recomm_event_name, recomm_event_detail) 
+		VALUES	 (	seq_recomm_event_no.nextval , #{eventName} , #{videoName}, #{recommEventName}, #{recommEventDetail} )
+	 </insert>	 
+	 
+	 <update	id="updateRecommendedEvent"	parameterType="recommEvent" >
+	 	UPDATE recommended_event 
+	 	<set>
+	 		event_name	= #{eventName}
+	 		,video_name = #{videoName:VARCHAR}
+	 		,recomm_event_name = #{recommEventName}
+	 		,recomm_event_detail = #{recommEventDetail}
+		</set>
+		WHERE recomm_event_no = #{recommEventNo}
+	 </update>
+	 
+	 <delete id="deleteRecommendedEvent" parameterType="int">
+	  	DELETE 
+	  	FROM recommended_event 
+	  	WHERE recomm_event_no = #{recommEventNo}
+  	</delete>
+  	
+	 <insert 	id="insertCategoryTwo"		parameterType="category" >
+	 	INSERT
+		INTO category_two( category_two_no,category_one_code,category_two_name,category_two_eng) 
+		VALUES	 (seq_category_two_no.nextval , #{categoryOneCode} , #{categoryTwoName}, #{categoryTwoEng} )
+	 </insert>	 
+	 
+	 <update	id="updateCategoryTwo"	parameterType="category" >
+	 	UPDATE category_two 
+	 	<set>
+	 		category_one_code	= #{categoryOneCode},
+	 		category_two_name = #{categoryTwoName},
+	 		category_two_eng = #{categoryTwoEng}
+		</set>
+		WHERE category_two_no = #{categoryTwoNo}
+	 </update>
+	 
+	 <select 	id="selectCategory"	parameterType="string"	resultMap="categorySelectMap">
+		 SELECT category_one_code, category_two_name, category_two_eng, category_two_no
+		 FROM category_two
+<!-- 		 WHERE category_two_eng = #{categoryTwoEng:NUMERIC} -->
+		 <if test="value != null and value != '' "  >WHERE category_two_eng = #{categoryTwoEng}</if>
+		  ORDER BY category_one_code, category_two_no
+	 </select>
+	 
+	 <select 	id="selectCategoryByNo"	parameterType="int"	resultMap="categorySelectMap">
+		 SELECT category_one_code, category_two_name, category_two_eng, category_two_no
+		 FROM category_two
+		 WHERE category_two_no = #{categoryTwoNo:NUMERIC}
+		 ORDER BY category_one_code, category_two_no
+	 </select>
+	 
+	 
+	 <select 	id="selectListCategoryCount"	resultType="int">
+		SELECT COUNT(*)
+	  	FROM( SELECT category_one_code,category_two_name,category_two_eng 
+		 				FROM category_two  
+		 				ORDER BY category_two_no)  countTable	
+	 </select>
+	 
+	 <delete id="deleteCategoryTwo" parameterType="string">
+	  	DELETE 
+	  	FROM category_two 
+	  	WHERE category_two_eng = #{categoryTwoEng}
+  	</delete>
+  	
+  	<select 	id="selectInterestedByUser"	parameterType="search"	 resultType="string">
+		 SELECT  user_id 
+		 FROM  user_interested 
+		 <if test="searchCondition == 0" >WHERE category_two_eng = #{searchKeyword}</if>
+		 <if test="searchCondition == 1" >WHERE event_id = #{searchKeyword}</if>
+		 ORDER BY user_id
+	 </select>
+	 
+	 <select 	id="selectInterestedByUserCount"	parameterType="search"	 resultType="int">
+		 SELECT COUNT(*)
+	  	FROM( SELECT user_id 
+		 				FROM user_interested 
+		 				<if test="searchCondition == 0" >WHERE category_two_eng = #{searchKeyword}</if>
+		 				<if test="searchCondition == 1" >WHERE event_id = #{searchKeyword}</if>)  countTable	
+	 </select>
+	 
+	 <select 	id="selectAllLocation"	resultMap="eventSelectMap">
+		 SELECT DISTINCT event_location , ko_location
+		 FROM event
+	 </select>
+	 
+	 <select 	id="selectEventName"	 parameterType="string" 	resultType="string">
+		 SELECT event_name
+		 FROM event
+		 WHERE ko_name LIKE '%'||#{koName}||'%'
+	 </select>
+	 
+</mapper>

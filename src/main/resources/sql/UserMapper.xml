@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="UserMapper">
+ 	
+ 	
+	<resultMap id="userSelectMap" type="user">
+		<result property="userId" 			column="user_id" 			jdbcType="VARCHAR"/>
+		<result property="userName"	column="user_name" 		jdbcType="VARCHAR" />
+		<result property="password" 	column="password" 		jdbcType="VARCHAR" />
+		<result property="phone" 				column="phone" 					jdbcType="VARCHAR" />
+		<result property="nickName" 				column="nickname" 					jdbcType="VARCHAR" />
+		<result property="address" 			column="address" 		jdbcType="VARCHAR" />
+		<result property="postalCode" 				column="postal_code" 					jdbcType="VARCHAR" />
+		<result property="role" 			column="role" 				jdbcType="CHAR"  />
+		<result property="local" 		column="local" 			jdbcType="CHAR" />
+		<result property="point" 			column="point" 			jdbcType="NUMERIC"/>
+		<result property="userStatement" 			column="user_statement" 			jdbcType="CHAR"/>
+		<result property="lastConnDate" 			column="last_conn_date" 			jdbcType="DATE"/>
+		<result property="kakaoId" 			column="kakao_id" 			jdbcType="VARCHAR"/>
+		<result property="naverId" 			column="naver_id" 			jdbcType="VARCHAR"/>
+		<result property="facebookId" 			column="facebook_id" 			jdbcType="VARCHAR"/>
+		<result property="blacklistCode" 			column="blacklist_code" 			jdbcType="CHAR"/>
+		<result property="blacklistStartDate" 			column="blacklist_start_date" 			jdbcType="DATE"/>
+		<result property="blacklistEndDate" 			column="blacklist_end_date" 			jdbcType="DATE"/>
+		<result property="sellerCode" 			column="seller_code" 			jdbcType="CHAR"/>
+		<result property="salesAmount" 			column="sales_amount" 			jdbcType="NUMERIC"/>
+		<result property="salesCount" 			column="sales_count" 			jdbcType="NUMERIC"/>
+		<result property="accountBank" 			column="account_bank" 			jdbcType="VARCHAR"/>
+		<result property="accountNo" 			column="account_no" 			jdbcType="VARCHAR"/>
+		
+	</resultMap>
+	
+	<!-- SQL : INSERT -->
+
+ 	 <insert 	id="insertUser"		parameterType="user" >
+	 	INSERT
+		INTO users( user_id , user_name , password , phone , nickname, address, postal_code, role, 
+		local, point, user_statement, last_conn_date, kakao_Id, naver_Id, facebook_Id, blacklist_code, blacklist_start_date,
+		blacklist_end_date, seller_code, sales_amount, sales_count, account_bank, account_no) 
+		VALUES	 (	#{userId:VARCHAR} , #{userName:VARCHAR} , #{password:VARCHAR} , #{phone:VARCHAR} , #{nickName:VARCHAR} , #{address:VARCHAR}, 
+					#{postalCode:VARCHAR} , '0' , #{local:CHAR} , #{point:NUMERIC} , '1' , SYSDATE ,
+					#{kakaoId:VARCHAR}, #{naverId:VARCHAR}, #{facebookId:VARCHAR} , #{blacklistCode:CHAR}, #{blacklistStartDate:DATE} , #{blacklistEndDate:DATE} ,
+					#{sellerCode:CHAR}, #{salesAmount:NUMERIC}, #{salesCount:NUMERIC}, #{accountBank:VARCHAR}, #{accountNo:VARCHAR} )
+	 </insert>
+	 
+	 
+	 
+	  <select 	id="selectUser"	parameterType="string"	resultMap="userSelectMap">
+		SELECT
+		 user_id , user_name , password , phone , nickname, address, postal_code, role, 
+		local, point, user_statement, last_conn_date, kakao_Id, naver_Id, facebook_Id, blacklist_code, blacklist_start_date,
+		blacklist_end_date, seller_code, sales_amount, sales_count, account_bank, account_no 		
+		FROM users 
+		WHERE user_id = #{value}
+	 </select>
+	 
+	 <update	id="updateUser"	parameterType="user" >
+	   	UPDATE users
+	   	<set>
+	   	
+	   		<if test="phone != null">phone = #{phone} ,</if>
+	   		<if test="address != null">address = #{address} ,</if> 
+	   		<if test="postalCode != null">postal_code = #{postalCode} ,</if>
+	   		<if test="local != null">local = #{local}, </if>
+	   		<if test="role != null">role = #{role} ,</if>
+	   		<if test="nickName != null">nickname = #{nickName} ,</if>
+	   		<if test="sellerCode != null">seller_code = #{sellerCode} ,</if>
+	   		<if test="salesAmount != null">sales_amount = #{salesAmount} ,</if>
+	   		<if test="salesCount != null">sales_count = #{salesCount} ,</if>
+	   		<if test="accountBank != null">account_bank = #{accountBank} ,</if>
+	   		<if test="accountNo != null">account_no = #{accountNo}</if>
+	   		
+	   	</set>
+	   	
+	   	WHERE user_id = #{userId:VARCHAR}
+	   	
+	 </update>
+	 
+	  <update 	id="updatePassword"		parameterType="user" >
+	 	UPDATE users
+	 	<set>
+	 	       password = #{password:VARCHAR}
+					
+	 	</set>
+	 	WHERE user_id = #{userId:VARCHAR}
+	 </update>
+	 
+	 
+	 
+	 
+	 
+	 <update 	id="insertBlacklist"		parameterType="user" >
+	 	UPDATE users
+	 	<set>
+	 	       blacklist_code = #{blacklistCode:CHAR} ,
+	 	        blacklist_start_date = #{blacklistStartDate:DATE} ,
+	 	        blacklist_end_date = #{blacklistEndDate:DATE}  
+					
+	 	</set>
+	 	WHERE user_id = #{userId:VARCHAR}
+	 </update>
+	 
+	 
+	 
+	<select  id="getUserList"  parameterType="search"	resultMap="userSelectMap">
+	  	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	SELECT user_id , user_name , password , phone , nickname, address, postal_code, role, 
+		local, point, user_statement, last_conn_date, kakao_Id, naver_Id, facebook_Id, blacklist_code, blacklist_start_date,
+		blacklist_end_date, seller_code, sales_amount, sales_count, account_bank, account_no
+											FROM users
+											<if test="searchCondition != null">
+												<where>
+													<if test="searchCondition == 0 and searchKeyword !='' ">
+										 				user_id = #{searchKeyword}
+													</if>
+													<if test="searchCondition == 1 and searchKeyword !='' ">
+										 				user_name = #{searchKeyword}
+													</if>
+												</where>
+											</if>
+											ORDER BY user_id ) inner_table
+											)
+	 </select>
+	
+	<select id="selectnickName" resultType="string" resultMap="userSelectMap">
+	SELECT 
+		nickName
+	FROM
+		users
+	where nickName = #{value}
+
+</select>
+
+<select id="selectuserId" resultType="string" resultMap="userSelectMap">
+	SELECT 
+		user_Id
+	FROM
+		users
+		
+		WHERE user_id = #{value}
+
+</select>
+	
+	 <select id="selectKakao" parameterType="string" resultMap="userSelectMap">
+	SELECT 
+		*
+	FROM
+		users
+		
+	where kakao_Id = #{value}
+
+</select> 
+
+<select id="selectNaver" parameterType="string" resultMap="userSelectMap">
+	SELECT 
+		*
+	FROM
+		users
+		
+	where naver_Id = #{value}
+
+</select> 
+
+
+
+<select id="selectCode" parameterType="string" resultMap="userSelectMap">
+	SELECT 
+		code
+	FROM
+		users
+	where code = #{value}
+
+</select>
+
+
+	
+	<select id="finduserId" parameterType="string" resultMap="userSelectMap">
+	SELECT 
+		user_id , user_name ,phone
+	FROM
+		users
+	where phone = #{value}
+
+</select>
+
+	<select id="findPassword" parameterType="string" resultMap="userSelectMap">
+	   	SELECT 
+		password
+	FROM
+		users
+	where user_id = #{value}
+
+</select>
+
+	
+<!-- SQL : SELECT ROW Count -->	 
+	 <select  id="getTotalCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM(	SELECT user_id , user_name , nickName
+						FROM users
+						<if test="searchCondition != null">
+							<where>
+								<if test="searchCondition == 0 and searchKeyword !='' ">
+						 			user_id = #{searchKeyword}
+								</if>
+								<if test="searchCondition == 1 and searchKeyword !='' ">
+						 		user_name = #{searchKeyword}
+								</if>
+							</where>
+						</if> ) countTable						
+	 </select>
+	
+
+	
+</mapper>

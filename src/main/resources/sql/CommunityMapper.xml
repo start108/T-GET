@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CommunityMapper">
+ 	
+ 	
+	<resultMap id="contentSelectMap" type="content">
+		<result property="contentNo" 		column="content_no" 		jdbcType="NUMERIC"/>
+		<result property="userId"			column="user_id" 			jdbcType="VARCHAR" />
+		<result property="userNickname" 	column="user_nickname" 		jdbcType="VARCHAR" />
+		<result property="contentName" 		column="content_name" 		jdbcType="VARCHAR" />
+		<result property="contentBody" 		column="content_body" 		jdbcType="VARCHAR"	/>
+		<result property="videoName" 		column="video_name" 		jdbcType="VARCHAR" />
+		<result property="fileName" 		column="file_name" 			jdbcType="VARCHAR" />
+		<result property="regDate" 			column="reg_date" 			jdbcType="DATE" />
+		<result property="viewCount" 		column="view_count" 		jdbcType="NUMERIC"/>
+		<result property="boardCode" 		column="board_code" 		jdbcType="CHAR"/>
+		<result property="contentCode" 		column="content_code" 		jdbcType="CHAR"/>
+		<result property="open" 			column="open" 				jdbcType="CHAR"/>
+		<result property="goodCount" 		column="good_count" 		jdbcType="NUMERIC"/>
+		<result property="badCount" 		column="bad_count" 			jdbcType="NUMERIC"/>
+		<result property="refundTranNo" 	column="refund_tran_no" 	jdbcType="NUMERIC"/>
+		<result property="refundCheck" 		column="refund_check" 		jdbcType="CHAR"/>
+		
+	</resultMap>
+	
+	<resultMap id="reportSelectMap" type="report" >
+		<result property="reportNo" 		column="report_no" 			jdbcType="NUMERIC"/>
+		<result property="whiteId" 			column="white_id" 			jdbcType="VARCHAR"/>
+		<result property="whiteNickname" 	column="white_nickname" 	jdbcType="VARCHAR"/>
+		<result property="blackId" 			column="black_id" 			jdbcType="VARCHAR"/>
+		<result property="contentNo" 		column="content_no" 		jdbcType="NUMERIC"/>
+		<result property="replyNo" 			column="reply_no" 			jdbcType="NUMERIC"/>
+		<result property="reportReasonCode" column="report_reason_code" jdbcType="CHAR"/>
+		<result property="regDate" 			column="reg_date" 			jdbcType="DATE"/>
+		<result property="reportCode" 		column="report_code" 		jdbcType="CHAR"/>
+		<result property="check" 			column="check_yn" 			jdbcType="CHAR"/>
+			
+	</resultMap>
+	
+	<resultMap  id="replySelectMap" type="reply">
+		<result property="replyNo" 			column="reply_no" 			jdbcType="NUMERIC"/>
+		<result property="userId" 			column="user_id" 			jdbcType="VARCHAR"/>
+		<result property="userNickname" 	column="user_nickname" 		jdbcType="VARCHAR"/>
+		<result property="contentNo" 		column="content_no" 		jdbcType="NUMERIC"/>
+		<result property="replyBody" 		column="reply_body" 		jdbcType="VARCHAR"/>
+		<result property="regDate" 			column="reg_date" 			jdbcType="DATE"/>	
+	</resultMap>
+	
+	<!-- SQL : INSERT Content -->
+	<insert 	id="insertContent"		parameterType="content" >
+	 	<!-- <selectKey keyProperty="contentNo" resultType="int" order="BEFORE">
+	 			SELECT seq_content_content_no.nextval FROM DUAL  currval 
+		</selectKey> -->
+	 	INSERT <!-- NVL(#{contentBody:VARCHAR}, empty_clob()) -->
+		INTO content 
+		VALUES	 (	seq_content_content_no.nextval , #{userId} , #{userNickname} , #{contentName} 
+		, #{contentBody} , #{fileName:VARCHAR} , #{videoName:VARCHAR} 
+		, SYSDATE, 0, #{boardCode}, #{contentCode}, #{open}, 0, 0, #{refundTranNo}, #{refundCheck:CHAR} )
+													
+	 </insert>
+	 
+	 <insert 	id="insertReport"		parameterType="report">
+	 	INSERT
+	 	INTO report
+	 	VALUES	(	seq_report_report_no.nextval, #{whiteId: VARCHAR}, #{whiteNickname: VARCHAR}, #{blackId: VARCHAR},
+	 				 #{reportReasonCode:CHAR},
+	 				SYSDATE, #{contentNo}, #{replyNo}, '1', #{reportCode:CHAR})
+	 </insert>
+	 
+	 <insert	id="insertReply"		parameterType="reply">
+	 	INSERT
+	 	INTO reply
+	 	VALUES	( 	seq_reply_reply_no.nextval, #{userId}, #{userNickname}, #{contentNo}, #{replyBody}, SYSDATE)
+	 </insert>
+	 	<!-- <if test="contentNo==0">null</if>
+					<if test="contentNo!=0">#{contentNo}</if> ,
+					<if test="replyNo==0">null</if>
+					<if test="replyNo!=0">#{replyNo}</if> , --> 
+	
+	<!-- SQL : SELECT ONE -->
+	 <select 	id="selectContent"	parameterType="content"	resultMap="contentSelectMap">
+		SELECT
+		content_no , user_id, user_nickname, content_name, content_body, file_name, video_name, reg_date, view_count,
+		board_code, content_code, open, good_count, bad_count, refund_tran_no, refund_check  		
+		FROM content 
+		WHERE content_no = #{value}
+	 </select>
+	 
+	 <select 	id="selectReport"	parameterType="report"	resultMap="reportSelectMap">
+		SELECT
+		report_no, white_id, white_nickname, black_id, content_no, reply_no, report_reason_code, reg_date, report_code, '1'
+		FROM report 
+		WHERE report_no = #{value}
+	 </select>
+	 
+	 <select 	id="selectReply"	parameterType="report"	resultMap="replySelectMap">
+		SELECT
+		reply_no, user_id, user_nickname, content_no, reply_body, SYSDATE
+		FROM reply 
+		WHERE reply_no = #{value}
+	 </select>
+	 
+	 <!-- SQL :  UPDATE CLOB 수정 필요.....-->
+	 <update	id="updateContent"	parameterType="content"  >
+	   	UPDATE content
+	   	<set>
+			content_name	= #{contentName:VARCHAR},
+			content_body = #{contentBody:VARCHAR},
+			file_name	= #{fileName:VARCHAR},
+			video_name = #{videoName:VARCHAR}
+			
+	   	</set>
+	   	WHERE content_no = #{contentNo}
+	 </update>
+	 
+	 <update	id="updateReply"	parameterType="reply"  >
+	   	UPDATE reply
+	   	<set>
+			user_id	= #{userId},
+			user_nickname = #{userNickname},
+			content_no	= #{contentNo},
+			reply_body = #{contentBody:VARCHAR}
+	   	</set>
+	   	WHERE reply_no = #{replyNo}
+	 </update>
+	 
+	 <update	id="updateReport"	parameterType="report"  >
+	   	UPDATE report
+	   	<set>
+	   		check_yn = #{check}
+	   	</set>
+	   	WHERE report_no = #{reportNo}
+	 </update>
+	 <update	id="updateOpen"	parameterType="int"  >
+	   	UPDATE content
+	   	<set>
+	   		open = '1'
+	   	</set>
+	   	WHERE content_no = #{value}
+	 </update>
+	 
+	 <update	id="updateRefund"	parameterType="content"  >
+	   	UPDATE content
+	   	<set>
+	   		refund_check = #{refundCheck:CHAR}
+	   	</set>
+	   	WHERE content_no = #{contentNo}
+	 </update>
+	 
+	 <update	id="updateGoodCount"	parameterType="content"  >
+	   	UPDATE content
+	   	<set>
+			good_count = good_count+1
+	   	</set>
+	   	WHERE content_no = #{contentNo}
+	 </update>
+	 
+	 <update 	id="updateViewCount"	parameterType="content"  >
+	   	UPDATE content
+	   	<set>
+			view_count = view_count+1
+	   	</set>
+	   	WHERE content_no = #{contentNo}
+	 </update>
+	 
+	 <update	id="updateBadCount"	parameterType="content"  >
+	   	UPDATE content
+	   	<set>
+			bad_count = bad_count+1
+	   	</set>
+	   	WHERE content_no = #{contentNo}
+	 </update>
+	
+  	<!-- SQL: DELETE  -->
+	 <delete id="deleteReply" parameterType="int">
+	  	DELETE 
+	  	FROM reply 
+	  	WHERE reply_no = #{replyNo} 
+  	</delete>
+  	
+  	<!-- SQL: SELECT LIST -->
+  	<select  id="selectListContent"  parameterType="search"	resultMap="contentSelectMap">
+	 	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	
+	  									SELECT content_no, user_id, user_nickName
+	  										, content_name, content_body , file_name
+	  										, video_name , reg_date , view_count, board_code
+	  										, content_code , open , good_count , bad_count
+	  										, refund_tran_no, refund_check
+											FROM content
+											<if test="searchCondition != null">
+												<where>
+													<if test="searchCondition == 0 and searchKeyword !='' ">
+										 				LOWER(content_name) LIKE LOWER('%'|| #{searchKeyword}||'%')
+													</if>
+													<if test="searchCondition == 1 and searchKeyword !='' ">
+										 				AND board_code = #{searchKeyword} 
+													</if>
+													<if test="searchCondition == 2 and searchKeyword !='' ">
+														AND content_code in (#{searchKeyword},'1','0')
+													</if>
+													<if test="searchCondition == 3 ">
+														AND content_code in('8','9','10','11')
+													</if>
+													AND open = '0'	
+<!-- 													<if	test="regDate != null"> -->
+<!-- 														<if test="regDate == 0"> -->
+<!-- 														and reg_date > SYSDATE-30 -->
+<!-- 														</if> -->
+<!-- 												   </if>		 -->
+												</where>
+											</if>
+											ORDER BY content_no ) inner_table)
+						<!-- WHERE ROWNUM &lt;= #{endRowNum} )
+		WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum} --> 
+	 </select>
+	 
+	 <select  id="selectTotalCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  					FROM(			SELECT content_no, user_id, user_nickName
+	  										, content_name, content_body , file_name
+	  										, video_name , reg_date , view_count, board_code
+	  										, content_code , open , good_count , bad_count
+	  										, refund_tran_no, refund_check
+											FROM content
+											<if test="searchCondition != null">
+												<where>
+													<if test="searchCondition == 0 and searchKeyword !='' ">
+										 				LOWER(content_name) LIKE LOWER('%'|| #{searchKeyword}||'%')
+													</if>
+													<if test="searchCondition == 1 and searchKeyword !='' ">
+										 				AND board_code = #{searchKeyword} 
+													</if>
+													<if test="searchCondition == 2 and searchKeyword !='' ">
+														AND content_code = #{searchKeyword} 
+													</if>
+													<if test="searchCondition == 3 ">
+														AND content_code in('8','9','10','11')
+													</if>
+													AND open = '0'	
+												</where>
+											</if>
+											) countTable
+	</select>
+	 
+	  <select  id="selectListReport"  parameterType="search"	resultMap="reportSelectMap">
+	 	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	
+	  									SELECT report_no, white_id, white_nickname, black_id,
+	  									 content_no, reply_no, report_reason_code , reg_date, 
+	  									 report_code, check_yn
+											FROM report
+											WHERE check_yn = '1'
+											ORDER BY report_no ) inner_table)		
+	 </select>
+	 
+	 <select  id="selectTotalCountReport"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  					FROM(			SELECT report_no, white_id, white_nickname, black_id,
+	  									 content_no, reply_no, report_reason_code , reg_date, 
+	  									 report_code, check_yn
+											FROM report
+											WHERE check_yn = '1'
+											<!-- <if test="searchCondition != null">
+												<where>
+													<if test="searchCondition == 0 and searchKeyword !='' ">
+										 				report_no = #{searchKeyword}
+													</if>
+													<if test="searchCondition == 1 and searchKeyword !='' ">
+										 				and LOWER(white_id) LIKE LOWER('%'|| #{searchKeyword}||'%') 
+													</if>
+													</where>
+									</if> -->) countTable
+	</select>
+	 <!-- 댓글 리스트 조회...  -->
+	 <select  id="selectListReply"  parameterType="search"	resultMap="replySelectMap">
+	 	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	
+	  									SELECT reply_no, user_id, user_nickname
+	  										, content_no, reply_body, reg_date
+											FROM reply
+											
+											) inner_table
+			)		
+	 </select> 
+	 
+	 <select  id="selectListRefund"  parameterType="search"	resultMap="contentSelectMap">
+	 	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	
+	  									SELECT content_no, user_id, user_nickname
+	  										, content_name, content_body , file_name
+	  										, video_name , reg_date , view_count, board_code
+	  										, content_code , open , good_count , bad_count
+	  										, refund_tran_no, refund_check
+											FROM content
+											WHERE refund_check = '1' AND content_code = '7'	
+											ORDER BY content_no ) inner_table)
+						
+	 </select>
+	 
+	 <select  id="selectTotalCountRefund"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  					FROM(			SELECT content_no, user_id, user_nickname
+	  										, content_name, content_body , file_name
+	  										, video_name , reg_date , view_count, board_code
+	  										, content_code , open , good_count , bad_count
+	  										, refund_tran_no, refund_check
+											FROM content
+											WHERE refund_check = '1' AND content_code = '7'	
+											ORDER BY content_no 
+											) countTable
+	</select>
+	 
+	 
+
+</mapper>

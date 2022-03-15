@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="TicketMapper">
+ 	
+ 	
+	<resultMap id="ticketSelectMap" type="ticket">
+		<result property="ticketNo" 			column="TICKET_NO" 			jdbcType="NUMERIC"/>
+		<result property="amount"	column="TICKET_AMOUNT" 		jdbcType="NUMERIC" />
+		<result property="price" 	column="TICKET_PRICE" 		jdbcType="NUMERIC" />
+		<result property="type" 	column="TICKET_TYPE" 					jdbcType="CHAR" />
+		<result property="code" 		column="TICKET_CODE" 					jdbcType="CHAR" />
+		<result property="seat" 		column="TICKET_SEAT" 		jdbcType="VARCHAR" />
+		<result property="options" 		column="TICKET_OPTION" 					jdbcType="VARCHAR" />
+		<result property="regDate" 			column="REG_DATE" 				jdbcType="DATE"  />
+		<result property="ticketImage" 		column="TICKET_IMAGE" 			jdbcType="VARCHAR" />
+		<result property="checkCode" 			column="CHECK_YN" 			jdbcType="CHAR"/>
+		<result property="couponNo" 			column="COUPON_NO" 			jdbcType="NUMERIC"/>
+		<result property="couponCode" 			column="COUPON_CODE" 			jdbcType="CHAR"/>
+		<association property="event" column="EVENT_ID" javaType="event" select="EventMapper.selectEventById"/> 
+ 		<association property="seller" column="SELLER_ID" javaType="user" select="UserMapper.selectUser"/>
+  	</resultMap>
+	
+	<resultMap id="sellProbSelectMap" type="sellProb">
+		<result property="highPrice"  column="high_price" jdbcType="NUMERIC"/>
+		<result property="avgPrice"  column="avg_price" jdbcType="NUMERIC"/>
+		<result property="lowPrice"  column="low_price" jdbcType="NUMERIC"/>
+		<result property="totalCount"  column="total_count" jdbcType="NUMERIC"/>
+	</resultMap>
+		
+	<insert id="insertTicket" parameterType="ticket">
+		INSERT
+		INTO ticket( TICKET_NO , EVENT_ID , TICKET_AMOUNT , SELLER_ID , TICKET_PRICE , TICKET_TYPE , TICKET_CODE , TICKET_SEAT
+					, TICKET_OPTION , REG_DATE , TICKET_IMAGE , CHECK_YN , COUPON_NO , COUPON_CODE) 
+		VALUES	 ( seq_ticket_ticket_no.nextval	, #{event.eventId} , #{amount} , #{seller.userId} , #{price} 
+					, #{type} , 0 , #{seat} , #{options:VARCHAR} , SYSDATE , #{ticketImage} , '1' 
+					, <if test="couponNo != 0">#{couponNo}</if>
+					  <if test="couponNo == 0">null</if> , #{couponCode:CHAR})	
+	</insert>	 
+	 
+	<update	id="updateTicketCode"	parameterType="ticket" >
+	 	UPDATE ticket
+	 	<set>
+	 		ticket_code	= #{code}
+		</set>
+		WHERE ticket_no = #{ticketNo}
+	 </update>
+	 
+	 <update	id="updateTicketAmount"	parameterType="ticket" >
+	 	UPDATE ticket
+	 	<set>
+	 		ticket_amount = #{amount}
+		</set>
+		WHERE ticket_no = #{ticketNo}
+	 </update>
+	 
+	 <select  id="selectListTicket"  parameterType="search"	resultMap="ticketSelectMap">
+	 	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	
+	  									SELECT ticket_no, event_id, ticket_amount
+	  										, seller_id	, TICKET_PRICE , TICKET_TYPE
+	  										, TICKET_CODE , TICKET_SEAT , TICKET_OPTION
+	  										, REG_DATE , TICKET_IMAGE , CHECK_YN , COUPON_NO , COUPON_CODE
+											FROM ticket
+											<where>										
+												<if test="searchCondition != null">												
+												<choose>	
+												<when test="searchCondition == 0 and searchKeyword !='' ">
+													event_id = #{searchKeyword}
+												</when>
+												<when test="searchCondition == 1 and searchKeyword !='' ">
+													seller_id = #{searchKeyword}
+												</when>
+												<when test="searchCondition == 2 ">
+													ticket_code = '0'
+												</when>
+												</choose>
+												</if>												
+											</where>
+											order by reg_date desc
+											) inner_table
+			)		
+	 </select>
+	 
+	 <select  id="selectTicket"  parameterType="int"	resultMap="ticketSelectMap">
+	 	SELECT 
+	 	TICKET_NO , EVENT_ID , TICKET_AMOUNT , SELLER_ID , TICKET_PRICE , TICKET_TYPE , 
+	 	TICKET_CODE , TICKET_SEAT , TICKET_OPTION , REG_DATE , TICKET_IMAGE , CHECK_YN , 
+	 	COUPON_NO , COUPON_CODE
+	 	FROM TICKET
+	 	WHERE TICKET_NO = #{value}	
+	 </select>
+	 
+	 <select  id="selectSellProb"  parameterType="search"	resultMap="sellProbSelectMap">
+	 	select 
+		
+		max(ticket_price) high_price, 
+		min(ticket_price) low_price,
+		round(sum(ticket_amount*ticket_price)/sum(ticket_amount), 0) avg_price ,
+		count(*) total_count 
+		
+		from ticket	
+		<where>										
+			<if test="searchCondition != null">												
+			<choose>	
+			<when test="searchCondition == 0 and searchKeyword !='' ">
+				event_id = #{searchKeyword}
+			</when>
+			<when test="searchCondition == 1 and searchKeyword !='' ">
+				seller_id = #{searchKeyword}
+			</when>
+			<when test="searchCondition == 2 ">
+				ticket_code = '0'
+			</when>
+			</choose>
+			</if>												
+		</where>
+	</select>
+	 	 
+	 <!-- 
+	 WHERE ROWNUM &lt;= #{endRowNum} )
+	 WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum} 
+	  -->
+	  
+</mapper>

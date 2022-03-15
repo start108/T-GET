@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AlarmMapper">
+ 	
+ 	
+	<resultMap id="alarmSelectMap" type="alarm">
+		<result property="alarmNo" 			column="alarm_no" 			jdbcType="NUMERIC"/>
+		<result property="alarmBody" 	column="alarm_body" 		jdbcType="VARCHAR" />
+		<result property="alarmCode" 				column="alarm_code" 					jdbcType="CHAR" />
+		<result property="alarmKeyword" 				column="alarm_keyword" 					jdbcType="VARCHAR" />
+		<result property="regDate" 				column="alarm_date" 					jdbcType="DATE" />
+		<result property="userId" 				column="user_id" 					jdbcType="VARCHAR" />
+		<result property="readCode" 			column="read" 		jdbcType="CHAR" />
+	</resultMap>
+	
+	<!-- SQL -->
+	<insert id="insertAlarm" parameterType="alarm">
+		INSERT
+		INTO alarm( alarm_no , alarm_body , alarm_code , alarm_keyword , alarm_date , user_id , read ) 
+		VALUES	 ( seq_alarm_alarm_no.nextval	, #{alarmBody} , #{alarmCode} , #{alarmKeyword}, sysdate , #{userId} , '1' )	
+	</insert>
+	
+	<update	id="updateAlarmRead"	parameterType="int" >
+	 	UPDATE alarm
+	 	<set>
+	 		read = '0'
+		</set>
+		WHERE alarm_no = #{value}
+	 </update>
+	 
+	 <delete id="deleteAlarm" parameterType="int">
+	 	DELETE FROM alarm
+	 	WHERE alarm_no = #{value}
+	 </delete>
+	 
+	 <select  id="selectListAlarm"  parameterType="search"	resultMap="alarmSelectMap">
+	 	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM	(	
+	  								SELECT alarm_no, alarm_body , alarm_code , alarm_keyword , alarm_date
+	  									, user_id	, read 
+										FROM alarm
+								<where>		
+									user_id = #{searchKeyword}
+																					
+								</where>
+									) inner_table
+			)		
+	 </select>
+	 
+	 <select  id="selectTotalCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM(	
+				SELECT alarm_no
+				FROM alarm
+					<where>		
+					user_id = #{searchKeyword}
+					</where>
+	  	) countTable						
+	 </select>
+	 
+	 <select  id="selectNoReadAlarmCount"  parameterType="int"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM(	
+				SELECT alarm_no
+				FROM alarm
+				<where>		
+					user_id = #{value}
+					and read = '1'
+				</where>
+	  	) countTable						
+	 </select>
+	 
+</mapper>

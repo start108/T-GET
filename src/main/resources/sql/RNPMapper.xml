@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="RNPMapper">
+ 	<resultMap id="reviewSelectMap" type="review">
+		<result property="tranNo" 			column="tran_no" 			jdbcType="NUMERIC"/>
+		<result property="score"	column="review_score" 		jdbcType="NUMERIC" />
+		<result property="reviewBody" 	column="review_body" 		jdbcType="VARCHAR" />
+		<result property="regDate" 				column="review_reg_date" 					jdbcType="DATE" />
+		<association property="seller" column="seller_id" javaType="user" select="UserMapper.selectUser"/> 
+ 		<association property="buyer" column="buyer_id" javaType="user" select="UserMapper.selectUser"/>
+<!-- 		<result property="buyerId" 				column="buyer_id" 					jdbcType="VARCHAR" /> -->
+<!-- 		<result property="sellerId" 			column="seller_id" 		jdbcType="VARCHAR" /> -->
+	</resultMap>
+ 	
+	<resultMap id="pointHistorySelectMap" type="pointHistory">
+		<result property="pointHistoryNo" 			column="point_history_no" 			jdbcType="NUMERIC"/>
+		<result property="userId"	column="user_id" 		jdbcType="VARCHAR" />
+		<result property="pointUpdateCode" 	column="point_update_code" 		jdbcType="CHAR" />
+		<result property="regDate" 				column="reg_date" 					jdbcType="DATE" />
+		<result property="tranNo" 				column="tran_no" 					jdbcType="NUMERIC" />
+		<result property="totalPoint" 			column="total_point" 		jdbcType="NUMERIC" />
+		<result property="updatePoint" 				column="update_point" 					jdbcType="NUMERIC" />
+	</resultMap>
+	
+
+<!-- 	<insert 	id="InsertReview"		parameterType="review" > -->
+<!-- 	 	INSERT -->
+<!-- 		INTO transaction( user_id , user_name , password , role , ssn, cell_phone, addr, email , reg_date)  -->
+<!-- 		VALUES	 (	#{userId} , #{userName} , #{password} , 'user' , #{ssn:VARCHAR} ,  -->
+<!-- 							#{phone:VARCHAR} , #{addr:VARCHAR} , #{email:VARCHAR} , SYSDATE ) -->
+<!-- 	 </insert> -->
+
+	<select 	id="selectLatestPointHistory"	parameterType="string"	resultType="int">
+		SELECT vt.*, ROWNUM
+	 	 FROM		(SELECT
+							point_history_no , user_id , point_update_code , reg_date , tran_no, total_point, update_point
+							FROM point_history
+							WHERE user_id = #{userId}
+							ORDER BY reg_date DESC) vt
+		 WHERE ROWNUM &lt;= 1
+	 </select>
+	 
+<!-- 	 <select 	id="selectPointHistoryByTranNo"	parameterType="int" resultMap="pointHistorySelectMap"> -->
+<!-- 		SELECT -->
+<!-- 					point_history_no , user_id , point_update_code , reg_date , tran_no, total_point, update_point -->
+<!-- 					FROM point_history -->
+<!-- 					WHERE tran_no = #{tranNo} -->
+<!-- 	 </select> -->
+	 
+	 <select 	id="selectPointHistory"	parameterType="string"	resultMap="pointHistorySelectMap">
+		SELECT
+		point_history_no , user_id , point_update_code , reg_date , tran_no, total_point, update_point
+		FROM point_history
+		WHERE user_id = #{userId}
+		ORDER BY reg_date DESC
+	 </select>
+	 
+	 <select 	id="selectPointHistoryCount"	parameterType="string"	resultType="int">
+		SELECT COUNT(*) 
+		FROM (SELECT
+						point_history_no , user_id , point_update_code , reg_date , tran_no, total_point, update_point
+						FROM point_history
+						WHERE user_id = #{userId})  countTable	
+	 </select>
+	 
+	 <insert 	id="insertPointHistory"		parameterType="pointHistory" >
+	 	INSERT
+		INTO point_history( point_history_no , user_id , point_update_code , reg_date , tran_no, total_point, update_point) 
+		VALUES	 (	seq_point_history_no.nextval , #{userId} , #{pointUpdateCode} , SYSDATE, 
+							#{tranNo} , #{totalPoint} , #{updatePoint}  )
+	 </insert>
+	 
+	 <select 	id="selectReviewList"	 parameterType="search"	 resultMap="reviewSelectMap">
+		SELECT
+		review_score, review_body, review_reg_date, buyer_id, seller_id, tran_no
+		FROM transaction
+		<if test="searchCondition == 0">WHERE buyer_id = #{searchKeyword}</if>
+		<if test="searchCondition == 1">WHERE seller_id = #{searchKeyword}</if>
+		AND review_score IS NOT NULL
+		ORDER BY review_reg_date DESC
+	 </select>
+	 
+	 <select 	id="selectReview"	parameterType="int"	resultMap="reviewSelectMap">
+		SELECT
+		review_score, review_body, review_reg_date, buyer_id, seller_id
+		FROM transaction
+		WHERE tran_no = #{tranNo}
+	 </select>
+	 
+	 <update	id="updateReview"  parameterType="review" >
+	 	UPDATE transaction 
+	 	<set>
+	 		review_score	= #{score}
+	 		,review_body = #{reviewBody}
+	 		<if test="regDate == null">,review_reg_date = SYSDATE</if>
+	 		<if test="regDate != null">,review_reg_date = #{regDate}</if>	 		
+		</set>
+		WHERE tran_no = #{tranNo}
+	 </update>
+	 
+	 <update	id="updatePoint"  parameterType="user" >
+	 	UPDATE users 
+	 	<set>
+	 		point	= #{point}
+		</set>
+		WHERE user_id = #{userId}
+	 </update>
+	 
+<!-- 	<select 	id="selectTranList"	parameterType="int"	resultMap="reviewSelectMap"> -->
+<!-- 		 SELECT  -->
+<!-- 				tran_no , ticket_no , event_id , seller_id , buyer_id , order_amount ,  -->
+<!-- 				total_price , order_date , payment_option , payment_no , tran_code , delivery_add ,  -->
+<!-- 				delivery_company , delivery_no , delivery_start_date , review_score , review_body ,  -->
+<!-- 				review_reg_date , refund_account_bank , refund_account_no -->
+<!-- 				FROM transaction -->
+<!-- 	</select> -->
+</mapper>
