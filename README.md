@@ -7,10 +7,9 @@
 ## Index
 
 * [About Project](#about-Project)
-* [Stack](#stack)
+* [Stacks](#stacks)
 * [Details](#details)
   * [ERD](#erd)
-  * [View](#view)
   * [Demo](#demo)
 
 &nbsp;&nbsp;&nbsp;
@@ -25,7 +24,7 @@
 
 &nbsp;
 
-## Stack
+## Stacks
 ![Java](https://img.shields.io/badge/Java-007396?style=flat-square&logo=java&logoColor=white)
 ![Spring](https://img.shields.io/badge/Spring-6DB33F?style=flat-square&logo=spring&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/Javascript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
@@ -41,9 +40,6 @@
 &nbsp;
 
 ## Details
-
-### Develop Period
-<img src="https://github.com/start108/Tget/assets/46213056/ad0878d7-45d1-4e35-8b3c-1f657b951607" width="300" alt-text="Develop Period">
 
 ### ERD
 <img src="https://github.com/start108/Tget/assets/46213056/a7136ee3-4ab5-41f4-9017-8eedb11f3a7f" width="300" alt-text="ERD">
