@@ -42,9 +42,11 @@
 
 ## Details
 
-### ERD
+### Develop Period
+<img src="https://github.com/start108/Tget/assets/46213056/ad0878d7-45d1-4e35-8b3c-1f657b951607" width="300" alt-text="Develop Period">
 
-### View
+### ERD
+<img src="https://github.com/start108/Tget/assets/46213056/a7136ee3-4ab5-41f4-9017-8eedb11f3a7f" width="300" alt-text="ERD">
 
 ### Open API
 *	NAVER 로그인 API
@@ -67,17 +69,11 @@
   <tbody>
    <tr>
     <th>시연영상</th>
-    <th>발표영상</th>
    </tr>
    <tr>
      <td>
        <a href="https://www.youtube.com/watch?v=WkNdfJ11B2M" title="Tget 시연영상 🎫">
-         <img align="center" src="https://img.youtube.com/vi/TTLHd3IyErM/0.jpg" width="300" alt-text="Tget 시연영상 🎫">
-       </a>
-     </td>
-     <td>
-       <a href="https://www.youtube.com/watch?v=6gp4n4FbjIg" title="Tget 발표영상 🎫">
-         <img align="center" src="" width="300" alt-text="Tget 발표영상 🎫">
+         <img align="center" src="https://github.com/start108/Tget/assets/46213056/1979ea48-0a8b-4c1e-867a-5255d8d2e715" width="300" alt-text="Tget 시연영상 🎫">
        </a>
      </td>
    </tr>
