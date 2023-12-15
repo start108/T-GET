@@ -9,6 +9,7 @@
 * [About Project](#about-Project)
 * [Stacks](#stacks)
 * [Details](#details)
+  * [Develop period](#develop-period)
   * [ERD](#erd)
   * [Demo](#demo)
 
@@ -41,8 +42,11 @@
 
 ## Details
 
+### Develop period
+<img src="https://github.com/start108/Tget/assets/46213056/d8e70a40-f550-4d8b-a979-04ba3a9a5076" width="600" height="350" alt-text="Develop period">
+
 ### ERD
-<img src="https://github.com/start108/Tget/assets/46213056/a7136ee3-4ab5-41f4-9017-8eedb11f3a7f" width="300" alt-text="ERD">
+<img src="https://github.com/start108/Tget/assets/46213056/a7136ee3-4ab5-41f4-9017-8eedb11f3a7f" width="600" height="400" alt-text="ERD">
 
 ### Open API
 *	NAVER 로그인 API
